@@ -46,7 +46,7 @@ class SettingsCubit extends Cubit<SettingsState>{
       language: state.language,
       darkMode: state.darkMode,
       userInfo: userInfo,
-      userLoggedIn: true,
+      userLoggedIn: false,
     );
 
     emit(newState);
@@ -55,7 +55,7 @@ class SettingsCubit extends Cubit<SettingsState>{
 
     await storage.writeUserData(
         userInfo: userInfo,
-        isLoggedIn: true
+        isLoggedIn: false
     );
   }
   userLogout() async {
