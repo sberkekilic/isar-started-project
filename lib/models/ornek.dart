@@ -47,16 +47,33 @@ class _NewsListPageState extends State<NewsListPage> {
             builder: (context) {
               final userLoggedIn = context.select((SettingsCubit cubit) => cubit.state.userLoggedIn);
               if (userLoggedIn) {
-                return IconButton(
-                  icon: Icon(Icons.exit_to_app),
-                  onPressed: () {
-                    // Çıkış yap butonuna basıldığında yapılacak işlemler
-                    context.read<SettingsCubit>().userLogout(); // Kullanıcı çıkışını gerçekleştirir
-                    GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
-                  },
+                return Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.exit_to_app),
+                      onPressed: () {
+                        // Çıkış yap butonuna basıldığında yapılacak işlemler
+                        context.read<SettingsCubit>().userLogout(); // Kullanıcı çıkışını gerçekleştirir
+                        GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.settings),
+                      onPressed: () {
+                        // Çıkış yap butonuna basıldığında yapılacak işlemler
+                        GoRouter.of(context).go('/settings'); // Anasayfaya yönlendirme
+                      },
+                    )
+                  ],
                 );
               } else {
-                return Container();
+                return IconButton(
+                  icon: Icon(Icons.settings),
+                  onPressed: () {
+                    // Çıkış yap butonuna basıldığında yapılacak işlemler
+                    GoRouter.of(context).go('/settings'); // Anasayfaya yönlendirme
+                  },
+                );
               }
             },
           ),

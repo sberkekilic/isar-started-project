@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../blocs/settings/settings_cubit.dart';
 import '../../localizations/localizations.dart';
@@ -26,19 +27,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext context) => CupertinoActionSheet(
         title: Text(
-            AppLocalizations.of(context).getTranslate('language_selection')),
+            AppLocalizations.of(context).getTranslate('language_selection'), style: TextStyle(fontSize: 20),),
         message: Text(
             AppLocalizations.of(context).getTranslate('language_selection2')),
         actions: <CupertinoActionSheetAction>[
           CupertinoActionSheetAction(
-            /// This parameter indicates the action would be a default
-            /// defualt behavior, turns the action's text to bold text.
             isDefaultAction: true,
             onPressed: () {
               settings.changeLanguage("tr");
               Navigator.pop(context);
             },
-            child: const Text('Turkce'),
+            child: const Text('Türkçe'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
@@ -48,9 +47,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: const Text('English'),
           ),
           CupertinoActionSheetAction(
-            /// This parameter indicates the action would perform
-            /// a destructive action such as delete or exit and turns
-            /// the action's text color to red.
+            onPressed: () {
+              settings.changeLanguage("fr");
+              Navigator.pop(context);
+            },
+            child: const Text('Français'),
+          ),
+          CupertinoActionSheetAction(
             isDestructiveAction: true,
             onPressed: () {
               Navigator.pop(context);
@@ -67,9 +70,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context).getTranslate('settings')),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // Geri butonuna basıldığında yapılacak işlemler
+            GoRouter.of(context).go('/news'); // Anasayfaya yönlendirme
+          },
+        ),
       ),
       body: Column(
         children: [
+          SizedBox(height: 20),
           InkWell(
               onTap: () {
                 _showActionSheet(context);
@@ -77,7 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Text(
                   '${AppLocalizations.of(context).getTranslate('language')} : ${settings.state.language}')),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                   '${AppLocalizations.of(context).getTranslate('darkMode')}: '),
@@ -88,11 +99,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               )
             ],
-          ),
-          Divider(),
-          ElevatedButton(
-            child: Text('Hello World'),
-            onPressed: () {},
           ),
         ],
       ),
