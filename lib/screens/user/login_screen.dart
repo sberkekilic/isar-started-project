@@ -105,6 +105,13 @@ class _LoginScreenState extends State<LoginScreen> {
       warnings = msgs;
       loading = false;
     });
+
+    if (settings.state.userLoggedIn) {
+      print("Kullanıcı oturum açmış durumda");
+    } else {
+      print("Kullanıcı oturum açmamış durumda");
+    }
+
   }
 
   Future<Map<String, dynamic>?> performLogin(String email, String password) async {

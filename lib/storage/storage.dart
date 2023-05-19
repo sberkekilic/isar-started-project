@@ -54,6 +54,7 @@ class AppStorage {
     storage.setBool('darkMode', darkMode);
   }
 
+
   readBalances() async {}
   writeBalances() async{}
 }
