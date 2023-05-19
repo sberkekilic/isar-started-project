@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isar_starter_project/pages/guest_page.dart';
-import 'login_page.dart';
+import 'package:isar_starter_project/screens/user/login_screen.dart';
+import 'package:isar_starter_project/screens/user/register_screen.dart';
 
 class HomePage extends StatelessWidget {
 
@@ -18,7 +19,7 @@ class HomePage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
                 );
               },
               child: Text('Login'),
@@ -27,7 +28,7 @@ class HomePage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => RegisterPage()),
+                  MaterialPageRoute(builder: (context) => RegisterScreen()),
                 );
               },
               child: Text('Register'),

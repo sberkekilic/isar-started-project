@@ -12,6 +12,7 @@
   "name": "Nom et prénom",
   "phone": "téléphone",
   "passwd": "Mot de passe",
+  "conf_passwd": "Répéter le mot de passe",
   "mail_required": "Veuillez saisir votre adresse e-mail.",
   "name_required": "S'il vous plaît entrez votre nom.",
   "phone_required": "Veuillez entrer votre numéro de téléphone.",

@@ -1,8 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:http/http.dart' as http;
 import '../../api/system_api.dart';
 import '../../blocs/settings/settings_cubit.dart';
 import '../../localizations/localizations.dart';
@@ -18,8 +20,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   late SettingsCubit settings;
   String name = "";
   String phone = "";
-  String mail = "";
-  String passwd = "";
+  String email = "";
+  String password = "";
+  String confirm_password = "";
   List<String> warnings = [];
   bool loading = false;
 
@@ -51,66 +54,57 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
 
-  register() async {
-
+  Future<void> register() async {
     setState(() {
       loading = true;
     });
 
-    List<String> msgs =[];
-    if(mail.trim().isEmpty) {
+    final List<String> msgs =[];
+
+    if (email.trim().isEmpty) {
       msgs.add("mail_required");
     }
-    if(passwd.trim().length < 6) {
+
+    if (password.trim().length < 6) {
       msgs.add("passwd_length");
     }
 
-    final bool emailValid =
-    RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-        .hasMatch(mail);
+    final bool emailValid = RegExp(
+      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+    ).hasMatch(email);
 
-    if(!emailValid) {
+    if (!emailValid) {
       msgs.add("email_format");
     }
 
-    if(name.trim().isEmpty){
+    if (name.trim().isEmpty) {
       msgs.add("name_required");
     }
 
-    if(phone.trim().isEmpty){
+    if (phone.trim().isEmpty) {
       msgs.add("phone_required");
     }
 
-    if(msgs.isEmpty) {
-      // everything is ok
-      // i can login
-      final api = SystemApi();
-      final result = await api.register(
-        email: mail.trim(),
-        name: name.trim(),
-        password: passwd.trim(),
-        phone: phone.trim(),
-      );
-      if(result == null) {
-        setState(() {
-          warnings = [AppLocalizations.of(context).getTranslate('register_failed')];
-        });
+    if (msgs.isEmpty) {
+      final registerResult = await performRegister(email, password, name, phone, confirm_password);
+
+      if (registerResult !=null){
+        final data = [
+          registerResult["email"],
+          registerResult["name"],
+          registerResult["phone"],
+          registerResult["token"]
+        ];
+        final dataList = data.map((value) => value.toString()).toList();
+        settings.userUpdate(dataList);
+        GoRouter.of(context).replace('/home');
+      } else {
+        warnings = [
+          AppLocalizations.of(context).getTranslate('invalid_credentials')
+        ];
         showWarnings();
       }
-      else {
-        // register successfull
-        List<String> data = [
-          name.trim(),
-          mail.trim(),
-          phone.trim(),
-          result.trim(),
-        ];
-        settings.userLogin(data);
-        GoRouter.of(context).replace('/home');
-      }
-    }
-
-    if(msgs.isNotEmpty) {
+    } else {
       showWarnings();
     }
 
@@ -118,6 +112,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
       warnings = msgs;
       loading = false;
     });
+
+    if (settings.state.userLoggedIn) {
+      print("Kullanıcı oturum açmış durumda");
+    } else {
+      print("Kullanıcı oturum açmamış durumda");
+    }
+  }
+
+  Future<Map<String, dynamic>?> performRegister(String email, String password, String name, String phone, String confirm_password) async {
+    final url = Uri.parse('https://api.eskanist.com/public/api/register');
+    final response = await http.post(
+      url,
+      body: {
+        'email': email,
+        'password': password,
+        'name' : name,
+        'phone' : phone,
+        'confirm_password' : confirm_password
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseBody = json.decode(response.body);
+      final success = responseBody['success'] as bool;
+      if (success) {
+        // Login successful, return the response body
+        return responseBody;
+      } else {
+        // Login failed, handle the error message
+        final msg = responseBody['msg'] as String;
+        print('Login failed: $msg');
+      }
+    } else {
+      // Handle error cases here
+      print('Error: ${response.statusCode}');
+    }
+    return null;
   }
 
   @override
@@ -137,7 +168,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 8),
               TextField(
                 onChanged: (value) => setState(() {
-                  mail = value;
+                  email = value;
                 }),
               ),
               Text(AppLocalizations.of(context).getTranslate('name')),
@@ -160,7 +191,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextField(
                 obscureText: true,
                 onChanged: (value) => setState(() {
-                  passwd = value;
+                  password = value;
+                }),
+              ),
+              Text(AppLocalizations.of(context).getTranslate('conf_passwd')),
+              const SizedBox(height: 8),
+              TextField(
+                onChanged: (value) => setState(() {
+                  confirm_password = value;
                 }),
               ),
               const SizedBox(height: 18),

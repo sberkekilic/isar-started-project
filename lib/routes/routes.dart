@@ -1,9 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:isar_starter_project/models/ornek.dart';
 import 'package:isar_starter_project/pages/guest_page.dart';
-import 'package:isar_starter_project/pages/login_page.dart';
-
-import '../screens/home_screen.dart';
 import '../screens/initial_screen.dart';
 import '../screens/static_screens/about_screen.dart';
 import '../screens/static_screens/contact_screen.dart';

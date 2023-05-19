@@ -29,7 +29,7 @@ class SystemApi {
     }
   }
 
-  Future<String?> register({required String email,required  String password,required  String name,required  String phone}) async {
+  Future<String?> register({required String email,required  String password,required  String name,required  String phone, required String confirm_password}) async {
     try {
       final dio = Dio();
       String endpoint = "https://api.eskanist.com/public/api/register";
@@ -38,7 +38,7 @@ class SystemApi {
         "name": name,
         "email": email,
         "password": password,
-        "confirm_password": password,
+        "confirm_password": confirm_password,
       };
 
       var formData = FormData.fromMap(params);

@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 
-import '../../api/system_api.dart';
 import '../../blocs/settings/settings_cubit.dart';
 import '../../localizations/localizations.dart';
 

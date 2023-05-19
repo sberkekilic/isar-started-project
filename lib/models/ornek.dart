@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'article.dart';
 
@@ -22,7 +23,16 @@ class _NewsListPageState extends State<NewsListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("NewsListPage"),
+        title: Text('News App'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              // Çıkış yap butonuna basıldığında yapılacak işlemler
+              GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
+            },
+          ),
+        ],
       ),
       body: Center(
         child: FutureBuilder<List<NewsArticle>>(
