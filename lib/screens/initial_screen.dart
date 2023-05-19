@@ -92,7 +92,7 @@ class _InitialScreenState extends State<InitialScreen> {
       });
 
       if (data["loggedIn"]) {
-        GoRouter.of(context).replace("/home");
+        GoRouter.of(context).replace("/news");
       } else {
         GoRouter.of(context).replace("/welcome");
       }

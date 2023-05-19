@@ -17,12 +17,12 @@ class NewsArticle {
 
   factory NewsArticle.fromJson(Map<String, dynamic> json) {
     return NewsArticle(
-      title: json['title'],
-      image: json['image'],
-      publishedDate: json['publishedDate'],
-      content: json['content'],
-      excerpt: json['content'].toString().substring(0, 100),
-      index: json['index']
+      title: json['title'] as String,
+      image: json['image'] as String,
+      publishedDate: json['publishedDate'] as String,
+      content: json['content'] as String,
+      excerpt: json['content'].toString().substring(0, 100) as String,
+      index: json['index'] as int
     );
   }
 }

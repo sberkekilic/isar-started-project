@@ -25,10 +25,6 @@ final routes = GoRouter(
       builder: (context, state) => WelcomeScreen(),
     ),
     GoRoute(
-      path: '/home',
-      builder: (context, state) => NewsPage(),
-    ),
-    GoRoute(
       path: '/news',
       builder: (context, state) => NewsListPage(),
     ),

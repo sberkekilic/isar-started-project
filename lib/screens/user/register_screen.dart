@@ -19,7 +19,6 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   late SettingsCubit settings;
   String name = "";
-  String phone = "";
   String email = "";
   String password = "";
   String confirm_password = "";
@@ -81,23 +80,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
       msgs.add("name_required");
     }
 
-    if (phone.trim().isEmpty) {
-      msgs.add("phone_required");
-    }
-
     if (msgs.isEmpty) {
-      final registerResult = await performRegister(email, password, name, phone, confirm_password);
+      final registerResult = await performRegister(email, password, name, confirm_password);
 
       if (registerResult !=null){
         final data = [
           registerResult["email"],
           registerResult["name"],
-          registerResult["phone"],
           registerResult["token"]
         ];
         final dataList = data.map((value) => value.toString()).toList();
         settings.userUpdate(dataList);
-        GoRouter.of(context).replace('/home');
+        GoRouter.of(context).replace('/news');
       } else {
         warnings = [
           AppLocalizations.of(context).getTranslate('invalid_credentials')
@@ -120,15 +114,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  Future<Map<String, dynamic>?> performRegister(String email, String password, String name, String phone, String confirm_password) async {
-    final url = Uri.parse('https://api.eskanist.com/public/api/register');
+  Future<Map<String, dynamic>?> performRegister(String email, String password, String name, String confirm_password) async {
+    final url = Uri.parse('https://api.qline.app/api/register');
     final response = await http.post(
       url,
       body: {
         'email': email,
         'password': password,
         'name' : name,
-        'phone' : phone,
         'confirm_password' : confirm_password
       },
     );
@@ -159,7 +152,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // Geri butonuna basıldığında yapılacak işlemler
+            GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
+          },
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: loading ? const Center(child: CircularProgressIndicator()) : Column(
@@ -176,13 +177,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextField(
                 onChanged: (value) => setState(() {
                   name = value;
-                }),
-              ),
-              Text(AppLocalizations.of(context).getTranslate('phone')),
-              const SizedBox(height: 8),
-              TextField(
-                onChanged: (value) => setState(() {
-                  phone = value;
                 }),
               ),
               const SizedBox(height: 8),

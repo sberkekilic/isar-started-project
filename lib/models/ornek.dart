@@ -1,8 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../blocs/settings/settings_cubit.dart';
 import 'article.dart';
 
 class NewsListPage extends StatefulWidget {
@@ -12,24 +15,49 @@ class NewsListPage extends StatefulWidget {
 
 class _NewsListPageState extends State<NewsListPage> {
   late Future<List<NewsArticle>> _articlesFuture;
+  late int _maxId;
 
   @override
   void initState() {
     super.initState();
     _articlesFuture = fetchNews(context);
+    _maxId = 0;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('News App'),
+        leadingWidth: 50,
+        title: Row(
+          children: [
+            IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                // Geri butonuna basıldığında yapılacak işlemler
+                GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
+              },
+            ),
+            Text('Örnek'),
+          ],
+        ),
+        automaticallyImplyLeading: false,
         actions: [
-          IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              // Çıkış yap butonuna basıldığında yapılacak işlemler
-              GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
+          Builder(
+            builder: (context) {
+              final userLoggedIn = context.select((SettingsCubit cubit) => cubit.state.userLoggedIn);
+              if (userLoggedIn) {
+                return IconButton(
+                  icon: Icon(Icons.exit_to_app),
+                  onPressed: () {
+                    // Çıkış yap butonuna basıldığında yapılacak işlemler
+                    context.read<SettingsCubit>().userLogout(); // Kullanıcı çıkışını gerçekleştirir
+                    GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
+                  },
+                );
+              } else {
+                return Container();
+              }
             },
           ),
         ],
@@ -49,9 +77,7 @@ class _NewsListPageState extends State<NewsListPage> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => NewsDetailPage(
-                            news: items,
-                            selectedIndex: index,
-                          ),
+                              item: items[index], news: items, maxId: _maxId),
                         ),
                       );
                     },
@@ -60,7 +86,7 @@ class _NewsListPageState extends State<NewsListPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Image.network(items[index].image),
-                          Padding(padding: EdgeInsets.all(16)),
+                          Padding(padding: EdgeInsets.all(8)),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -105,127 +131,171 @@ class _NewsListPageState extends State<NewsListPage> {
   }
 
   Future<List<NewsArticle>> fetchNews(BuildContext context) async {
-    final jsonString =
-    await DefaultAssetBundle.of(context).loadString('assets/news/news.json');
+    final jsonString = await DefaultAssetBundle.of(context)
+        .loadString('assets/news/news.json');
     final jsonItems = jsonDecode(jsonString)['articles'] as List<dynamic>;
+
+    for (var jsonItem in jsonItems) {
+      final item = NewsArticle.fromJson(jsonItem);
+      if (item.index > _maxId) {
+        _maxId = item.index;
+      }
+    }
+
     return jsonItems.map((jsonItem) => NewsArticle.fromJson(jsonItem)).toList();
   }
 }
 
 class NewsDetailPage extends StatefulWidget {
+  final NewsArticle item;
   final List<NewsArticle> news;
-  final int selectedIndex;
+  final int maxId;
 
-  NewsDetailPage({required this.news, required this.selectedIndex});
+  NewsDetailPage({required this.news, required this.item, required this.maxId});
 
   @override
   State<NewsDetailPage> createState() => _NewsDetailPageState();
 }
 
 class _NewsDetailPageState extends State<NewsDetailPage> {
-  late List<NewsArticle> _news = [];
-  List<NewsArticle> _loadedNews = [];
+  late List<NewsArticle> _loadedNews;
+  bool _isLoading = false;
+  bool _isListFinished = false;
+  bool _allowScroll = true;
   ScrollController _scrollController = ScrollController();
-  bool _isLoading = true;
-  int _currentIndex = 0;
+  int? deger;
 
   @override
   void initState() {
     super.initState();
-    _loadNews();
+    _loadedNews = [widget.item];
     _scrollController.addListener(_scrollListener);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _scrollListener() {
     if (!_isLoading &&
         _scrollController.position.pixels ==
             _scrollController.position.maxScrollExtent) {
-      _loadNextNews();
+      if (!_isListFinished && _allowScroll) {
+        _loadNextNews();
+      }
+    } else if (_scrollController.position.pixels ==
+        _scrollController.position.minScrollExtent) {
+      // Kullanıcı listenin başına kaydırırsa tekrar yüklemeyi etkinleştir
+      _allowScroll = true;
+    }
+
+    if (_scrollController.position.userScrollDirection ==
+        ScrollDirection.forward) {
+      _allowScroll = true;
     }
   }
 
-  void _loadNews() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    final jsonString = await DefaultAssetBundle.of(context)
-        .loadString('assets/news/news.json');
-    final jsonItems = jsonDecode(jsonString)['articles'] as List<dynamic>;
-    _news = jsonItems.map((jsonItem) => NewsArticle.fromJson(jsonItem)).toList();
-
-    _loadedNews.add(widget.news[widget.selectedIndex]);
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    await Future.delayed(Duration(seconds: 3));
-  }
-
   void _loadNextNews() async {
-    if (_currentIndex + 1 < _news.length) {
+    if (_loadedNews.length < widget.news.length) {
       setState(() {
         _isLoading = true;
-        _currentIndex++;
-        _loadedNews.add(_news[_currentIndex]);
       });
 
+      // Simulating a delay of 3 seconds
       await Future.delayed(Duration(seconds: 3));
 
+      final currentIndex = widget.news.indexOf(_loadedNews.last);
+      final nextIndex = currentIndex + 1;
+
+      if (nextIndex < widget.news.length) {
+        final nextItem = widget.news[nextIndex];
+        _loadedNews.add(nextItem);
+      }
+      setState(() {
+        //deger = _loadedItems.last.id;
+        print('2 ÖNEMLİ VERİ! ${widget.news[_loadedNews.length]}');
+        //_loadedItems.add(nextItem);
+        for (var item in _loadedNews) {
+          print('_loadedItems 2 | ID: ${item.index}');
+        }
+        _isLoading = false;
+      });
+    } else {
       setState(() {
         _isLoading = false;
+        _isListFinished = true;
+        _allowScroll = false;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final currentID = _loadedNews.last.index;
     return Scaffold(
       appBar: AppBar(
-        title: Text("AppBar"),
+        title: Text("ID: $currentID"),
       ),
       body: ListView.builder(
         controller: _scrollController,
-        itemCount: _loadedNews.length + (_isLoading ? 1 : 0),
+        itemCount: _loadedNews.length + (_isLoading ? 1 : 0) + 1,
+        physics: _allowScroll
+            ? AlwaysScrollableScrollPhysics()
+            : NeverScrollableScrollPhysics(),
         itemBuilder: (BuildContext context, int index) {
           if (index < _loadedNews.length) {
             final item = _loadedNews[index];
             return Card(
               margin: EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-              child: ListTile(
-                title: Text(item.title, style: TextStyle(fontSize: 30)),
-                subtitle: Text(
-                  item.content,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              child: Container(
+                width: double.infinity,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Image.network(
+                      item.image,
+                      fit: BoxFit.cover,
+                      height:
+                          200, // Belirli bir yükseklik verin veya istediğiniz gibi ayarlayın
+                    ),
+                    ListTile(
+                      contentPadding: EdgeInsets.symmetric(vertical: 15),
+                      title: Padding(
+                        padding: const EdgeInsets.only(bottom: 15.0),
+                        child: Text(item.title,
+                            style: TextStyle(
+                                fontSize: 30, fontWeight: FontWeight.bold)),
+                      ),
+                      subtitle: Text(
+                        "${item.publishedDate}\n\n${item.content}",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );
-          } else if (_isLoading) {
-            // Render loading indicator
-            return Container(
-              padding: EdgeInsets.all(16),
-              child: Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
           } else {
-            // Render empty container when index is out of range
-            return Container();
+            if (currentID == widget.maxId) {
+              return ListTile(
+                title: Center(
+                  child: Text('Liste bitti'),
+                ),
+              );
+            } else {
+              return ListTile(
+                title: Center(
+                  child: _isLoading ? CircularProgressIndicator() : null,
+                ),
+              );
+            }
           }
         },
       ),
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-

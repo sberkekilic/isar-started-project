@@ -89,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ];
         final dataList = data.map((value) => value.toString()).toList();
         settings.userLogin(dataList);
-        GoRouter.of(context).replace('/home');
+        GoRouter.of(context).replace('/news');
       } else {
         warnings = [
           AppLocalizations.of(context).getTranslate('invalid_credentials')
@@ -114,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<Map<String, dynamic>?> performLogin(String email, String password) async {
-    final url = Uri.parse('https://api.eskanist.com/public/api/login');
+    final url = Uri.parse('https://api.qline.app/api/login');
     final response = await http.post(
       url,
       body: {
@@ -149,7 +149,15 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // Geri butonuna basıldığında yapılacak işlemler
+            GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
+          },
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: loading ? const Center(child: CircularProgressIndicator()) : Column(

@@ -23,12 +23,38 @@ class NewsPage extends StatelessWidget {
         appBar: AppBar(
           title: Text('News App'),
           actions: [
-            IconButton(
-              icon: Icon(Icons.exit_to_app),
-              onPressed: () {
-                // Çıkış yap butonuna basıldığında yapılacak işlemler
-                context.read<SettingsCubit>().userLogout(); // Kullanıcı çıkışını gerçekleştirir
-                GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
+            Builder(
+              builder: (context) {
+                final userLoggedIn = context.select((SettingsCubit cubit) => cubit.state.userLoggedIn);
+                if (userLoggedIn) {
+                  return Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.exit_to_app),
+                        onPressed: () {
+                          // Çıkış yap butonuna basıldığında yapılacak işlemler
+                          context.read<SettingsCubit>().userLogout(); // Kullanıcı çıkışını gerçekleştirir
+                          GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.arrow_back),
+                        onPressed: () {
+                          // Geri butonuna basıldığında yapılacak işlemler
+                          GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
+                        },
+                      ),
+                    ],
+                  );
+                } else {
+                  return IconButton(
+                    icon: Icon(Icons.arrow_back),
+                    onPressed: () {
+                      // Geri butonuna basıldığında yapılacak işlemler
+                      GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
+                    },
+                  );
+                }
               },
             ),
           ],
