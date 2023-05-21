@@ -1,11 +1,13 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../blocs/settings/settings_cubit.dart';
+import '../localizations/localizations.dart';
 import 'article.dart';
 
 class NewsListPage extends StatefulWidget {
@@ -15,7 +17,33 @@ class NewsListPage extends StatefulWidget {
 
 class _NewsListPageState extends State<NewsListPage> {
   late Future<List<NewsArticle>> _articlesFuture;
+  late SettingsCubit settings;
   late int _maxId;
+
+  askLogout() {
+    showDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(AppLocalizations.of(context).getTranslate("logout")),
+        content: Text(AppLocalizations.of(context).getTranslate("logout_confirm")),
+        actions: [
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            child: Text(AppLocalizations.of(context).getTranslate("yes")),
+            onPressed: () {
+              settings.userLogout();
+              Navigator.of(context).pop();
+              GoRouter.of(context).replace('/welcome');
+            },),
+          CupertinoDialogAction(
+            child: Text(AppLocalizations.of(context).getTranslate("no")),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },),
+        ],
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -50,18 +78,23 @@ class _NewsListPageState extends State<NewsListPage> {
                 return Row(
                   children: [
                     IconButton(
-                      icon: Icon(Icons.exit_to_app),
-                      onPressed: () {
-                        // Çıkış yap butonuna basıldığında yapılacak işlemler
-                        context.read<SettingsCubit>().userLogout(); // Kullanıcı çıkışını gerçekleştirir
-                        GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
-                      },
-                    ),
-                    IconButton(
                       icon: Icon(Icons.settings),
                       onPressed: () {
                         // Çıkış yap butonuna basıldığında yapılacak işlemler
                         GoRouter.of(context).go('/settings'); // Anasayfaya yönlendirme
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.person_4_rounded),
+                      onPressed: () {
+                        // Çıkış yap butonuna basıldığında yapılacak işlemler
+                        GoRouter.of(context).go('/profile'); // Anasayfaya yönlendirme
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.exit_to_app),
+                      onPressed: () {
+                        askLogout();
                       },
                     )
                   ],

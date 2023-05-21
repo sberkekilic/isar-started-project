@@ -13,6 +13,7 @@
   "name": "Adınız",
   "phone": "Telefon",
   "passwd": "Şifre",
+  "profile": "Profil",
   "conf_passwd": "Şifre tekrarı",
   "mail_required": "E-Posta Adresinizi Giriniz.",
   "name_required": "İsminizi giriniz.",

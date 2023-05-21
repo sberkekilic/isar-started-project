@@ -59,7 +59,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-            title: Text('Profile'),
+          title: Text(AppLocalizations.of(context).getTranslate('profile')),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              // Geri butonuna basıldığında yapılacak işlemler
+              GoRouter.of(context).go('/news'); // Anasayfaya yönlendirme
+            },
+          ),
             actions: [
               InkWell(
                 onTap: () {
@@ -73,12 +80,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ]
         ),
         body: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text("Name: ${settings.state.userInfo[0]}"),
               Text("Email: ${settings.state.userInfo[1]}"),
               Text("Phone: ${settings.state.userInfo[2]}"),
               Text("Token: ${settings.state.userInfo[3]}"),
+              ElevatedButton(
+                  onPressed: () {
+                    GoRouter.of(context).go('/tickets');
+                  },
+                  child: Text("Destek alın"))
             ]
         ));
   }

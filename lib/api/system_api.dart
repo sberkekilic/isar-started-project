@@ -6,7 +6,7 @@ class SystemApi {
   login({required String email, required String password}) async {
     try {
       final dio = Dio();
-      String endpoint = "https://api.eskanist.com/public/api/login";
+      String endpoint = "https://api.qline.app/api/login";
       var params = {
         "email": email,
         "password": password,
@@ -32,7 +32,7 @@ class SystemApi {
   Future<String?> register({required String email,required  String password,required  String name,required  String phone, required String confirm_password}) async {
     try {
       final dio = Dio();
-      String endpoint = "https://api.eskanist.com/public/api/register";
+      String endpoint = "https://api.qline.app/api/register";
 
       var params = {
         "name": name,

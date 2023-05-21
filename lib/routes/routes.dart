@@ -1,6 +1,5 @@
 import 'package:go_router/go_router.dart';
 import 'package:isar_starter_project/models/ornek.dart';
-import 'package:isar_starter_project/pages/guest_page.dart';
 import '../screens/initial_screen.dart';
 import '../screens/static_screens/about_screen.dart';
 import '../screens/static_screens/contact_screen.dart';
@@ -10,6 +9,7 @@ import '../screens/user/forget_password_screen.dart';
 import '../screens/user/login_screen.dart';
 import '../screens/user/profile_screen.dart';
 import '../screens/user/register_screen.dart';
+import '../screens/user/ticket_screen.dart';
 import '../screens/user/welcome_screen.dart';
 
 final routes = GoRouter(
@@ -32,6 +32,14 @@ final routes = GoRouter(
     GoRoute(
       path: '/profile',
       builder: (context, state) => ProfileScreen(),
+    ),
+    GoRoute(
+        path: '/tickets',
+      builder: (context, state) => TicketScreen(),
+    ),
+    GoRoute(
+      path: '/ticket-add',
+      builder: (context, state) => TicketAddScreen(),
     ),
     GoRoute(
       path: '/login',
