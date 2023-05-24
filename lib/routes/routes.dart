@@ -39,7 +39,7 @@ final routes = GoRouter(
     ),
     GoRoute(
       path: '/ticket-add',
-      builder: (context, state) => TicketAddScreen(),
+      builder: (context, state) => AddTicketScreen(),
     ),
     GoRoute(
       path: '/login',
