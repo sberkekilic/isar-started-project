@@ -74,7 +74,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           icon: Icon(Icons.arrow_back),
           onPressed: () {
             // Geri butonuna basıldığında yapılacak işlemler
-            GoRouter.of(context).go('/news'); // Anasayfaya yönlendirme
+            GoRouter.of(context).push('/news'); // Anasayfaya yönlendirme
           },
         ),
       ),

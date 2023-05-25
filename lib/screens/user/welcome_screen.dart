@@ -20,35 +20,35 @@ class WelcomeScreen extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   context.read<SettingsCubit>().userLogout(); // Çıkış yap butonuna basıldığında çıkış işlemini gerçekleştirir
-                  GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
+                  GoRouter.of(context).push('/welcome'); // Anasayfaya yönlendirme
                 },
                 child: Text(AppLocalizations.of(context).getTranslate('logout')),
               ),
             if (!isUserLoggedIn)
               ElevatedButton(
                 onPressed: () {
-                  GoRouter.of(context).go('/login');
+                  GoRouter.of(context).push('/login');
                 },
                 child: Text(AppLocalizations.of(context).getTranslate('login')),
               ),
             if (!isUserLoggedIn)
               ElevatedButton(
                 onPressed: () {
-                  GoRouter.of(context).go('/register');
+                  GoRouter.of(context).push('/register');
                 },
                 child: Text(AppLocalizations.of(context).getTranslate('register')),
               ),
             if (!isUserLoggedIn)
               TextButton(
                 onPressed: () {
-                  GoRouter.of(context).go('/news');
+                  GoRouter.of(context).push('/news');
                 },
                 child: Text(AppLocalizations.of(context).getTranslate('continue_no_user')),
               ),
             if (isUserLoggedIn)
             TextButton(
               onPressed: () {
-                GoRouter.of(context).go('/news');
+                GoRouter.of(context).push('/news');
               },
               child: Text(AppLocalizations.of(context).getTranslate('get_back')),
             ),

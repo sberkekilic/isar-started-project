@@ -34,14 +34,14 @@ class NewsPage extends StatelessWidget {
                         onPressed: () {
                           // Çıkış yap butonuna basıldığında yapılacak işlemler
                           context.read<SettingsCubit>().userLogout(); // Kullanıcı çıkışını gerçekleştirir
-                          GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
+                          GoRouter.of(context).push('/welcome'); // Anasayfaya yönlendirme
                         },
                       ),
                       IconButton(
                         icon: Icon(Icons.arrow_back),
                         onPressed: () {
                           // Geri butonuna basıldığında yapılacak işlemler
-                          GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
+                          GoRouter.of(context).push('/welcome'); // Anasayfaya yönlendirme
                         },
                       ),
                     ],
@@ -51,7 +51,7 @@ class NewsPage extends StatelessWidget {
                     icon: Icon(Icons.arrow_back),
                     onPressed: () {
                       // Geri butonuna basıldığında yapılacak işlemler
-                      GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
+                      GoRouter.of(context).push('/welcome'); // Anasayfaya yönlendirme
                     },
                   );
                 }

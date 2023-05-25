@@ -25,7 +25,6 @@ class _TicketScreenState extends State<TicketScreen> {
     final url = 'https://api.qline.app/api/tickets/';
     final settings = context.read<SettingsCubit>();
     final bearerToken = settings.state.userInfo[3];
-
     // Replace 'YOUR_BEARER_TOKEN' with the actual bearer token
     final headers = {'Authorization': 'Bearer $bearerToken'};
 
@@ -35,7 +34,7 @@ class _TicketScreenState extends State<TicketScreen> {
 
       if (response.statusCode == 200) {
         setState(() {
-          tickets = responseBody;
+          tickets = responseBody.map((ticket) => {...ticket, 'isSelected': false}).toList();
         });
       } else {
         // Handle error response
@@ -50,32 +49,58 @@ class _TicketScreenState extends State<TicketScreen> {
   void toggleEditing() {
     setState(() {
       isEditing = !isEditing;
-      // Clear the selected ticket IDs when exiting editing mode
-      if (!isEditing) {
-        if (selectedTicketIds.isNotEmpty) {
-          selectedTicketIds.clear();
-        }
-      }
     });
+
+    if (!isEditing) {
+      // Clear the selected ticket IDs when exiting editing mode
+      selectedTicketIds.clear();
+      // Reset the tile color for all tickets
+      for (final ticket in tickets) {
+        ticket['isSelected'] = false;
+      }
+    }
   }
 
 
   void selectTicket(int ticketId) {
     setState(() {
-      // Add or remove the selected ticket ID based on its current state
-      if (selectedTicketIds.contains(ticketId)) {
-        selectedTicketIds.remove(ticketId);
-      } else {
-        selectedTicketIds.add(ticketId);
+      // Update the isSelected property for each ticket
+      for (final ticket in tickets) {
+        ticket['isSelected'] = (ticket['id'] == ticketId);
       }
     });
+
+    // Update the selectedTicketIds list
+    selectedTicketIds.clear();
+    if (isEditing) {
+      selectedTicketIds.add(ticketId);
+    } else {
+      selectedTicketIds.clear();
+    }
   }
+
+
+
+
+  void resetTileColor(int ticketId) {
+    // Find the index of the ticket in the tickets list
+    final index = tickets.indexWhere((ticket) => ticket['id'] == ticketId);
+    if (index != -1) {
+      // Reset the tile color to its original state
+      setState(() {
+        tickets[index]['isSelected'] = false;
+      });
+    }
+  }
+
+
+
+
 
   Future<void> removeSelectedTickets() async {
     final url = 'https://api.qline.app/api/tickets/close';
     final settings = context.read<SettingsCubit>();
     final bearerToken = settings.state.userInfo[3]; // Retrieve the bearer token
-
     final headers = {'Authorization': 'Bearer $bearerToken'};
 
     try {
@@ -118,14 +143,8 @@ class _TicketScreenState extends State<TicketScreen> {
                 style: TextStyle(color: Colors.white),
               ),
             ),
-          TextButton(
-
-            child: Text(
-                isEditing
-                    ? "Done"
-                    : "Select",
-              style: TextStyle(color: Colors.white),
-            ),
+          IconButton(
+            icon: Icon(Icons.edit),
             onPressed: toggleEditing,
           ),
         ],
@@ -135,32 +154,26 @@ class _TicketScreenState extends State<TicketScreen> {
         itemBuilder: (BuildContext context, int index) {
           final ticket = tickets[index];
           final ticketId = ticket['id'];
-          final isSelected = selectedTicketIds.contains(ticketId);
-          return ListTile(
-            title: Text(ticket['title']),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('id: ${ticket['id']}'),
-                Text('topic: ${ticket['topic']}'),
-                Text('Status: ${ticket['status']}'),
-                Text('Created At: ${ticket['created_at']}'),
-                Text('Updated At: ${ticket['updated_at']}'),
-              ],
+          final isSelected = ticket['isSelected'] ?? false; // Get the isSelected value for the ticket
+          return Card(
+            color: isSelected ? Colors.grey : null, // Set the card color based on isSelected
+            child: ListTile(
+              title: Text(ticket['title']),
+              subtitle: Text('Status: ${ticket['status']}'),
+              onTap: () {
+                if (isEditing) {
+                  selectTicket(ticketId);
+                } else {
+                  // Handle ticket tap for viewing or editing
+                  // Navigate to the ticket details or edit screen
+                }
+              },
             ),
-            onTap: () {
-              if (isEditing) {
-                selectTicket(ticketId);
-              } else {
-                // Handle ticket tap for viewing or editing
-                // Navigate to the ticket details or edit screen
-              }
-            },
-            tileColor: isSelected ? Colors.grey : null,
           );
         },
       ),
-      floatingActionButton: Column(
+      floatingActionButton: isEditing
+          ? Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
@@ -175,6 +188,9 @@ class _TicketScreenState extends State<TicketScreen> {
                   ),
                 ).then((value) {
                   // Handle any necessary actions after returning from ReplyTicketScreen
+                  if (value == 'done') {
+                    toggleEditing(); // Enable editing mode
+                  }
                 });
               } else {
                 // Show a message to the user indicating that no ticket is selected
@@ -196,14 +212,26 @@ class _TicketScreenState extends State<TicketScreen> {
             child: Icon(Icons.add),
           ),
         ],
+      )
+          : FloatingActionButton(
+        heroTag: 'add',
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddTicketScreen()),
+          ).then((value) {
+            // Handle any necessary actions after returning from AddTicketScreen
+          });
+        },
+        child: Icon(Icons.add),
       ),
+
     );
   }
 }
 
 // Placeholder screen to add a ticket
 class AddTicketScreen extends StatefulWidget {
-
   @override
   _AddTicketScreenState createState() => _AddTicketScreenState();
 }
@@ -217,7 +245,6 @@ class _AddTicketScreenState extends State<AddTicketScreen> {
     final createUrl = 'https://api.qline.app/api/tickets/';
     final settings = context.read<SettingsCubit>();
     final bearerToken = settings.state.userInfo[3]; // Retrieve the bearer token
-
     final headers = {'Authorization': 'Bearer $bearerToken'};
     final body = {
       'title': titleController.text,
@@ -233,6 +260,7 @@ class _AddTicketScreenState extends State<AddTicketScreen> {
 
         if (redirectUrl != null) {
           final redirectedResponse = await http.post(Uri.parse(redirectUrl), headers: headers, body: body);
+
           if (redirectedResponse.statusCode == 200) {
             // Ticket created successfully
             Navigator.pop(context); // Go back to the previous screen
@@ -256,7 +284,6 @@ class _AddTicketScreenState extends State<AddTicketScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -264,7 +291,7 @@ class _AddTicketScreenState extends State<AddTicketScreen> {
         title: Text('Add Ticket'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
@@ -285,12 +312,9 @@ class _AddTicketScreenState extends State<AddTicketScreen> {
                 labelText: 'Topic',
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 16.0),
             ElevatedButton(
-              onPressed: () {
-                createTicket();
-                Navigator.pop(context);
-              },
+              onPressed: createTicket,
               child: Text('Create Ticket'),
             ),
           ],
@@ -300,36 +324,35 @@ class _AddTicketScreenState extends State<AddTicketScreen> {
   }
 }
 
+// Placeholder screen to reply to a ticket
 class ReplyTicketScreen extends StatefulWidget {
   final int ticketId;
 
-  const ReplyTicketScreen({required this.ticketId});
+  const ReplyTicketScreen({Key? key, required this.ticketId}) : super(key: key);
 
   @override
-  State<ReplyTicketScreen> createState() => _ReplyTicketScreenState();
+  _ReplyTicketScreenState createState() => _ReplyTicketScreenState();
 }
 
 class _ReplyTicketScreenState extends State<ReplyTicketScreen> {
-  final TextEditingController messageController = TextEditingController();
+  TextEditingController replyController = TextEditingController();
 
   void replyToTicket() async {
-    final url = 'https://api.qline.app/api/tickets/respond';
+    final replyUrl = 'https://api.qline.app/api/tickets/respond';
     final settings = context.read<SettingsCubit>();
     final bearerToken = settings.state.userInfo[3]; // Retrieve the bearer token
-
     final headers = {'Authorization': 'Bearer $bearerToken'};
     final body = {
-      'message': messageController.text,
-      '_method': 'POST',
       'id': widget.ticketId.toString(),
+      'message': replyController.text,
     };
 
     try {
-      final response = await http.post(Uri.parse(url), headers: headers, body: body);
+      final response = await http.post(Uri.parse(replyUrl), headers: headers, body: body);
+
       if (response.statusCode == 200) {
-        // Ticket replied successfully
-        // Perform any necessary actions or show a success message
-        Navigator.pop(context); // Go back to the previous screen
+        // Reply sent successfully
+        Navigator.pop(context); // Go back to the previous screen and pass the result
       } else {
         // Handle error response
         print('Error: ${response.statusCode}');
@@ -344,18 +367,19 @@ class _ReplyTicketScreenState extends State<ReplyTicketScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reply Ticket'),
+        title: Text('Reply to Ticket'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextField(
-              controller: messageController,
-              decoration: InputDecoration(labelText: 'Message'),
+              controller: replyController,
+              decoration: InputDecoration(
+                labelText: 'Reply',
+              ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: replyToTicket,
               child: Text('Reply'),
@@ -366,4 +390,3 @@ class _ReplyTicketScreenState extends State<ReplyTicketScreen> {
     );
   }
 }
-

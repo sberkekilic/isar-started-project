@@ -64,7 +64,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Icon(Icons.arrow_back),
             onPressed: () {
               // Geri butonuna basıldığında yapılacak işlemler
-              GoRouter.of(context).go('/news'); // Anasayfaya yönlendirme
+              GoRouter.of(context).push('/news'); // Anasayfaya yönlendirme
             },
           ),
             actions: [
@@ -89,7 +89,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Text("Token: ${settings.state.userInfo[3]}"),
               ElevatedButton(
                   onPressed: () {
-                    GoRouter.of(context).go('/tickets');
+                    GoRouter.of(context).push('/tickets');
                   },
                   child: Text("Destek alın"))
             ]

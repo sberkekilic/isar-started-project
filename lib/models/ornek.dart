@@ -63,7 +63,7 @@ class _NewsListPageState extends State<NewsListPage> {
               icon: Icon(Icons.arrow_back),
               onPressed: () {
                 // Geri butonuna basıldığında yapılacak işlemler
-                GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
+                GoRouter.of(context).push('/welcome'); // Anasayfaya yönlendirme
               },
             ),
             Text('Örnek'),
@@ -81,14 +81,14 @@ class _NewsListPageState extends State<NewsListPage> {
                       icon: Icon(Icons.settings),
                       onPressed: () {
                         // Çıkış yap butonuna basıldığında yapılacak işlemler
-                        GoRouter.of(context).go('/settings'); // Anasayfaya yönlendirme
+                        GoRouter.of(context).push('/settings'); // Anasayfaya yönlendirme
                       },
                     ),
                     IconButton(
                       icon: Icon(Icons.person_4_rounded),
                       onPressed: () {
                         // Çıkış yap butonuna basıldığında yapılacak işlemler
-                        GoRouter.of(context).go('/profile'); // Anasayfaya yönlendirme
+                        GoRouter.of(context).push('/profile'); // Anasayfaya yönlendirme
                       },
                     ),
                     IconButton(
@@ -104,7 +104,7 @@ class _NewsListPageState extends State<NewsListPage> {
                   icon: Icon(Icons.settings),
                   onPressed: () {
                     // Çıkış yap butonuna basıldığında yapılacak işlemler
-                    GoRouter.of(context).go('/settings'); // Anasayfaya yönlendirme
+                    GoRouter.of(context).push('/settings'); // Anasayfaya yönlendirme
                   },
                 );
               }

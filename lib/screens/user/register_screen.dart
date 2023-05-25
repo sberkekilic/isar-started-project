@@ -157,7 +157,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           icon: Icon(Icons.arrow_back),
           onPressed: () {
             // Geri butonuna basıldığında yapılacak işlemler
-            GoRouter.of(context).go('/welcome'); // Anasayfaya yönlendirme
+            GoRouter.of(context).push('/welcome'); // Anasayfaya yönlendirme
           },
         ),
       ),
