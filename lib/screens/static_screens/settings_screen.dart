@@ -27,7 +27,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext context) => CupertinoActionSheet(
         title: Text(
-            AppLocalizations.of(context).getTranslate('language_selection'), style: TextStyle(fontSize: 20),),
+          AppLocalizations.of(context).getTranslate('language_selection'),
+          style: TextStyle(fontSize: 20),
+        ),
         message: Text(
             AppLocalizations.of(context).getTranslate('language_selection2')),
         actions: <CupertinoActionSheetAction>[
@@ -74,33 +76,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
           icon: Icon(Icons.arrow_back),
           onPressed: () {
             // Geri butonuna basıldığında yapılacak işlemler
-            GoRouter.of(context).push('/news'); // Anasayfaya yönlendirme
+            GoRouter.of(context).push('/profile'); // Anasayfaya yönlendirme
           },
         ),
       ),
-      body: Column(
-        children: [
-          SizedBox(height: 20),
-          InkWell(
-              onTap: () {
-                _showActionSheet(context);
-              },
-              child: Text(
-                  '${AppLocalizations.of(context).getTranslate('language')} : ${settings.state.language}')),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                  '${AppLocalizations.of(context).getTranslate('darkMode')}: '),
-              Switch(
-                value: settings.state.darkMode,
-                onChanged: (value) {
-                  settings.changeDarkMode(value);
-                },
-              )
-            ],
-          ),
-        ],
+      body: Center(
+        child: Column(
+          children: [
+            SizedBox(height: 50),
+            Container(
+              width: 300,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: Icon(Icons.language),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    title: Text(
+                        '${AppLocalizations.of(context).getTranslate('language')} '
+                            ': ${settings.state.language}'
+                    ),
+                    onTap: () {
+                      _showActionSheet(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.dark_mode),
+                    onTap: () {
+                      settings.changeDarkMode(!settings.state.darkMode);
+                    },
+                    title: Row(
+                      children: [
+                        Text('${AppLocalizations.of(context).getTranslate('darkMode')}: '),
+                        Switch(
+                            value: settings.state.darkMode,
+                            onChanged: (value) {
+                              settings.changeDarkMode(value);
+                            },
+                          ),
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

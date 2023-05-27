@@ -54,59 +54,36 @@ class _NewsListPageState extends State<NewsListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final userLoggedIn = context.select((SettingsCubit cubit) => cubit.state.userLoggedIn);
     return Scaffold(
       appBar: AppBar(
+        leading: !userLoggedIn ? IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // Go back button pressed
+            GoRouter.of(context).push('/welcome'); // Navigate to the home screen
+          },
+        ) : null, // Set leading to null when userLoggedIn is true
         leadingWidth: 50,
-        title: Row(
-          children: [
-            IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () {
-                // Geri butonuna basıldığında yapılacak işlemler
-                GoRouter.of(context).push('/welcome'); // Anasayfaya yönlendirme
-              },
-            ),
-            Text('Örnek'),
-          ],
-        ),
+        title: Text(AppLocalizations.of(context).getTranslate('news')),
         automaticallyImplyLeading: false,
         actions: [
           Builder(
             builder: (context) {
-              final userLoggedIn = context.select((SettingsCubit cubit) => cubit.state.userLoggedIn);
               if (userLoggedIn) {
                 return Row(
                   children: [
                     IconButton(
-                      icon: Icon(Icons.settings),
-                      onPressed: () {
-                        // Çıkış yap butonuna basıldığında yapılacak işlemler
-                        GoRouter.of(context).push('/settings'); // Anasayfaya yönlendirme
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.person_4_rounded),
+                      icon: Icon(Icons.person),
                       onPressed: () {
                         // Çıkış yap butonuna basıldığında yapılacak işlemler
                         GoRouter.of(context).push('/profile'); // Anasayfaya yönlendirme
                       },
                     ),
-                    IconButton(
-                      icon: Icon(Icons.exit_to_app),
-                      onPressed: () {
-                        askLogout();
-                      },
-                    )
                   ],
                 );
               } else {
-                return IconButton(
-                  icon: Icon(Icons.settings),
-                  onPressed: () {
-                    // Çıkış yap butonuna basıldığında yapılacak işlemler
-                    GoRouter.of(context).push('/settings'); // Anasayfaya yönlendirme
-                  },
-                );
+                return Container();
               }
             },
           ),
@@ -127,44 +104,73 @@ class _NewsListPageState extends State<NewsListPage> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => NewsDetailPage(
-                              item: items[index], news: items, maxId: _maxId),
+                              item: items[index],
+                              news: items,
+                              maxId: _maxId
+                          ),
                         ),
                       );
                     },
                     child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Image.network(items[index].image),
+                          ClipRRect(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                            child: Image.network(
+                              items[index].image,
+                              fit: BoxFit.cover,
+                              height: 200,
+                              width: double.infinity,
+                            ),
+                          ),
                           Padding(padding: EdgeInsets.all(8)),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                items[index].title,
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  items[index].title,
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                items[index].publishedDate,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[600],
+                                SizedBox(height: 8),
+                                Text(
+                                  items[index].publishedDate,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: 16),
-                              Text(
-                                '${items[index].excerpt}[...]',
-                                style: TextStyle(fontSize: 16, height: 1.5),
-                              ),
-                            ],
+                                SizedBox(height: 16),
+                                Text.rich(
+                                  TextSpan(
+                                    text: '${items[index].excerpt} ... ',
+                                    style: TextStyle(fontSize: 16, height: 1.5),
+                                    children: [
+                                      TextSpan(
+                                        text: AppLocalizations.of(context).getTranslate('read_more'),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          height: 1.5,
+                                          color: Colors.blue, // Set the desired color for the read more text
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
+
                   );
                 },
               );
@@ -203,6 +209,7 @@ class NewsDetailPage extends StatefulWidget {
 
   NewsDetailPage({required this.news, required this.item, required this.maxId});
 
+
   @override
   State<NewsDetailPage> createState() => _NewsDetailPageState();
 }
@@ -238,10 +245,8 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
       }
     } else if (_scrollController.position.pixels ==
         _scrollController.position.minScrollExtent) {
-      // Kullanıcı listenin başına kaydırırsa tekrar yüklemeyi etkinleştir
       _allowScroll = true;
     }
-
     if (_scrollController.position.userScrollDirection ==
         ScrollDirection.forward) {
       _allowScroll = true;
@@ -249,6 +254,10 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
   }
 
   void _loadNextNews() async {
+    if (_isLoading) {
+      return; // Prevent duplicate loading
+    }
+
     if (_loadedNews.length < widget.news.length) {
       setState(() {
         _isLoading = true;
@@ -285,67 +294,87 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
   @override
   Widget build(BuildContext context) {
     final currentID = _loadedNews.last.index;
+    bool _isListFinished = _loadedNews.last.index == 10;
+
     return Scaffold(
       appBar: AppBar(
         title: Text("ID: $currentID"),
       ),
       body: ListView.builder(
         controller: _scrollController,
-        itemCount: _loadedNews.length + (_isLoading ? 1 : 0) + 1,
-        physics: _allowScroll
-            ? AlwaysScrollableScrollPhysics()
-            : NeverScrollableScrollPhysics(),
+        itemCount: _loadedNews.length + (_isLoading ? 1 : 0) + (_isListFinished ? 1 : 0),
         itemBuilder: (BuildContext context, int index) {
           if (index < _loadedNews.length) {
             final item = _loadedNews[index];
             return Card(
               margin: EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+                side: BorderSide(width: 1, color: Colors.grey[300]!),
+              ),
+              elevation: 4,
               child: Container(
                 width: double.infinity,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Image.network(
-                      item.image,
-                      fit: BoxFit.cover,
-                      height:
-                          200, // Belirli bir yükseklik verin veya istediğiniz gibi ayarlayın
-                    ),
-                    ListTile(
-                      contentPadding: EdgeInsets.symmetric(vertical: 15),
-                      title: Padding(
-                        padding: const EdgeInsets.only(bottom: 15.0),
-                        child: Text(item.title,
-                            style: TextStyle(
-                                fontSize: 30, fontWeight: FontWeight.bold)),
+                    ClipRRect(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                      child: Image.network(
+                        item.image,
+                        fit: BoxFit.cover,
+                        height: 200,
+                        width: double.infinity,
                       ),
-                      subtitle: Text(
-                        "${item.publishedDate}\n\n${item.content}",
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.w500),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.title,
+                            style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 15),
+                          Text(
+                            item.publishedDate,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          SizedBox(height: 15),
+                          Text(
+                            item.content,
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
             );
+          } else if (index == _loadedNews.length && !_isListFinished) {
+            return ListTile(
+              title: Center(
+                child: CircularProgressIndicator()
+              ),
+            );
+          } else if (index == _loadedNews.length && _isListFinished) {
+            return ListTile(
+              title: Center(
+                child: Text('Liste bitti'),
+              ),
+            );
           } else {
-            if (currentID == widget.maxId) {
-              return ListTile(
-                title: Center(
-                  child: Text('Liste bitti'),
-                ),
-              );
-            } else {
-              return ListTile(
-                title: Center(
-                  child: _isLoading ? CircularProgressIndicator() : null,
-                ),
-              );
-            }
+            return SizedBox.shrink();
           }
         },
       ),
     );
   }
+
 }

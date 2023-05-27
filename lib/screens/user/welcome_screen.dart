@@ -16,14 +16,7 @@ class WelcomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (isUserLoggedIn)
-              ElevatedButton(
-                onPressed: () {
-                  context.read<SettingsCubit>().userLogout(); // Çıkış yap butonuna basıldığında çıkış işlemini gerçekleştirir
-                  GoRouter.of(context).push('/welcome'); // Anasayfaya yönlendirme
-                },
-                child: Text(AppLocalizations.of(context).getTranslate('logout')),
-              ),
+
             if (!isUserLoggedIn)
               ElevatedButton(
                 onPressed: () {
@@ -45,13 +38,6 @@ class WelcomeScreen extends StatelessWidget {
                 },
                 child: Text(AppLocalizations.of(context).getTranslate('continue_no_user')),
               ),
-            if (isUserLoggedIn)
-            TextButton(
-              onPressed: () {
-                GoRouter.of(context).push('/news');
-              },
-              child: Text(AppLocalizations.of(context).getTranslate('get_back')),
-            ),
           ],
         ),
       ),

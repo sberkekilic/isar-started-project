@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 
 import '../../blocs/settings/settings_cubit.dart';
+import '../../localizations/localizations.dart';
 
 class TicketScreen extends StatefulWidget {
   @override
@@ -121,13 +122,13 @@ class _TicketScreenState extends State<TicketScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Ticket Screen'),
+        title: Text('${AppLocalizations.of(context).getTranslate('support_center')}'),
         actions: [
           if (isEditing)
             TextButton(
               onPressed: removeSelectedTickets,
               child: Text(
-                'Remove',
+                '${AppLocalizations.of(context).getTranslate('remove')}',
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -142,22 +143,94 @@ class _TicketScreenState extends State<TicketScreen> {
         itemBuilder: (BuildContext context, int index) {
           final ticket = tickets[index];
           final ticketId = ticket['id'];
-          final isSelected = ticket['isSelected'] ?? false; // Get the isSelected value for the ticket
+          Color statusColor = Colors.green; // Initial color is green
 
-          // Determine whether to show the regular ListTile or RadioListTile based on the isEditing flag
+          if (ticket['status'] == 'user_closed') {
+            statusColor = Colors.red; // Change color to red for 'user_closed' status
+          }
+
+          // Exclude tickets with status 'user_closed' from the list if in editing mode
+          if (isEditing && ticket['status'] == 'user_closed') {
+            return SizedBox(); // Return an empty SizedBox to hide the ticket
+          }
+
           Widget tile;
           if (isEditing) {
             tile = RadioListTile<int>(
               value: ticketId,
               groupValue: selectedTicketIds.isNotEmpty ? selectedTicketIds.first : null,
-              title: Text(ticket['title']),
-              subtitle: Text('Status: ${ticket['status']}'),
+              contentPadding: EdgeInsets.all(15),
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    ticket['title'],
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                ],
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${AppLocalizations.of(context).getTranslate('status')}: ${ticket['status']}',
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 14,
+                    ),
+                  ),
+                  SizedBox(height: 5),
+                  Text(
+                    '${AppLocalizations.of(context).getTranslate('update')}: ${ticket['updated_at']}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
               onChanged: selectTicket,
             );
           } else {
             tile = ListTile(
-              title: Text(ticket['title']),
-              subtitle: Text('Status: ${ticket['status']}'),
+              contentPadding: EdgeInsets.all(15),
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    ticket['title'],
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                ],
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${AppLocalizations.of(context).getTranslate('status')}: ${ticket['status']}',
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 14,
+                    ),
+                  ),
+                  SizedBox(height: 5),
+                  Text(
+                    '${AppLocalizations.of(context).getTranslate('update')}: ${ticket['updated_at']}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
               onTap: () {
                 // Handle ticket tap for viewing or editing
                 // Navigate to the ticket details or edit screen
@@ -166,11 +239,15 @@ class _TicketScreenState extends State<TicketScreen> {
           }
 
           return Card(
+            elevation: 3,
+            margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
             child: tile,
           );
         },
       ),
+
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.deepPurple,
         onPressed: () {
           if (isEditing) {
             final selectedTicketId = selectedTicketIds.isNotEmpty ? selectedTicketIds.first : null;
@@ -203,7 +280,6 @@ class _TicketScreenState extends State<TicketScreen> {
     );
   }
 }
-
 
 // Placeholder screen to add a ticket
 class AddTicketScreen extends StatefulWidget {
@@ -263,7 +339,7 @@ class _AddTicketScreenState extends State<AddTicketScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Ticket'),
+        title: Text('${AppLocalizations.of(context).getTranslate('add_ticket')}'),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -272,25 +348,25 @@ class _AddTicketScreenState extends State<AddTicketScreen> {
             TextField(
               controller: titleController,
               decoration: InputDecoration(
-                labelText: 'Title',
+                labelText: '${AppLocalizations.of(context).getTranslate('title')}',
               ),
             ),
             TextField(
               controller: messageController,
               decoration: InputDecoration(
-                labelText: 'Message',
+                labelText: '${AppLocalizations.of(context).getTranslate('message')}',
               ),
             ),
             TextField(
               controller: topicController,
               decoration: InputDecoration(
-                labelText: 'Topic',
+                labelText: '${AppLocalizations.of(context).getTranslate('topic')}',
               ),
             ),
             SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: createTicket,
-              child: Text('Create Ticket'),
+              child: Text('${AppLocalizations.of(context).getTranslate('create_ticket')}'),
             ),
           ],
         ),
@@ -342,7 +418,7 @@ class _ReplyTicketScreenState extends State<ReplyTicketScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reply to Ticket'),
+        title: Text('${AppLocalizations.of(context).getTranslate('reply_ticket')}'),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -351,13 +427,13 @@ class _ReplyTicketScreenState extends State<ReplyTicketScreen> {
             TextField(
               controller: replyController,
               decoration: InputDecoration(
-                labelText: 'Reply',
+                labelText: '${AppLocalizations.of(context).getTranslate('response')}',
               ),
             ),
             SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: replyToTicket,
-              child: Text('Reply'),
+              child: Text('${AppLocalizations.of(context).getTranslate('reply')}'),
             ),
           ],
         ),
