@@ -27,14 +27,14 @@ class _TicketScreenState extends State<TicketScreen> {
     final bearerToken = settings.state.userInfo[3];
     // Replace 'YOUR_BEARER_TOKEN' with the actual bearer token
     final headers = {'Authorization': 'Bearer $bearerToken'};
-
     try {
       final response = await http.get(Uri.parse(url), headers: headers);
       final responseBody = json.decode(response.body);
-
       if (response.statusCode == 200) {
         setState(() {
-          tickets = responseBody.map((ticket) => {...ticket, 'isSelected': false}).toList();
+          tickets = responseBody
+              .map((ticket) => {...ticket, 'isSelected': false})
+              .toList();
         });
       } else {
         // Handle error response
@@ -50,7 +50,6 @@ class _TicketScreenState extends State<TicketScreen> {
     setState(() {
       isEditing = !isEditing;
     });
-
     if (!isEditing) {
       // Clear the selected ticket IDs when exiting editing mode
       selectedTicketIds.clear();
@@ -61,26 +60,21 @@ class _TicketScreenState extends State<TicketScreen> {
     }
   }
 
-
-  void selectTicket(int ticketId) {
+  void selectTicket(int? ticketId) {
     setState(() {
       // Update the isSelected property for each ticket
       for (final ticket in tickets) {
         ticket['isSelected'] = (ticket['id'] == ticketId);
       }
     });
-
     // Update the selectedTicketIds list
     selectedTicketIds.clear();
-    if (isEditing) {
+    if (isEditing && ticketId != null) {
       selectedTicketIds.add(ticketId);
     } else {
       selectedTicketIds.clear();
     }
   }
-
-
-
 
   void resetTileColor(int ticketId) {
     // Find the index of the ticket in the tickets list
@@ -93,21 +87,16 @@ class _TicketScreenState extends State<TicketScreen> {
     }
   }
 
-
-
-
-
   Future<void> removeSelectedTickets() async {
     final url = 'https://api.qline.app/api/tickets/close';
     final settings = context.read<SettingsCubit>();
     final bearerToken = settings.state.userInfo[3]; // Retrieve the bearer token
     final headers = {'Authorization': 'Bearer $bearerToken'};
-
     try {
       for (final ticketId in selectedTicketIds) {
         final body = {'id': ticketId.toString()};
-        final response = await http.post(Uri.parse(url), headers: headers, body: body);
-
+        final response =
+        await http.post(Uri.parse(url), headers: headers, body: body);
         if (response.statusCode == 200) {
           // Ticket deleted successfully
           setState(() {
@@ -119,7 +108,6 @@ class _TicketScreenState extends State<TicketScreen> {
           print('Error deleting ticket $ticketId: ${response.statusCode}');
         }
       }
-
       // Clear the selected ticket IDs after deleting
       selectedTicketIds.clear();
       fetchTickets();
@@ -155,80 +143,67 @@ class _TicketScreenState extends State<TicketScreen> {
           final ticket = tickets[index];
           final ticketId = ticket['id'];
           final isSelected = ticket['isSelected'] ?? false; // Get the isSelected value for the ticket
-          return Card(
-            color: isSelected ? Colors.grey : null, // Set the card color based on isSelected
-            child: ListTile(
+
+          // Determine whether to show the regular ListTile or RadioListTile based on the isEditing flag
+          Widget tile;
+          if (isEditing) {
+            tile = RadioListTile<int>(
+              value: ticketId,
+              groupValue: selectedTicketIds.isNotEmpty ? selectedTicketIds.first : null,
+              title: Text(ticket['title']),
+              subtitle: Text('Status: ${ticket['status']}'),
+              onChanged: selectTicket,
+            );
+          } else {
+            tile = ListTile(
               title: Text(ticket['title']),
               subtitle: Text('Status: ${ticket['status']}'),
               onTap: () {
-                if (isEditing) {
-                  selectTicket(ticketId);
-                } else {
-                  // Handle ticket tap for viewing or editing
-                  // Navigate to the ticket details or edit screen
-                }
+                // Handle ticket tap for viewing or editing
+                // Navigate to the ticket details or edit screen
               },
-            ),
+            );
+          }
+
+          return Card(
+            child: tile,
           );
         },
       ),
-      floatingActionButton: isEditing
-          ? Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-            heroTag: 'reply',
-            onPressed: () {
-              final selectedTicketId = selectedTicketIds.isNotEmpty ? selectedTicketIds.first : null;
-              if (selectedTicketId != null) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ReplyTicketScreen(ticketId: selectedTicketId),
-                  ),
-                ).then((value) {
-                  // Handle any necessary actions after returning from ReplyTicketScreen
-                  if (value == 'done') {
-                    toggleEditing(); // Enable editing mode
-                  }
-                });
-              } else {
-                // Show a message to the user indicating that no ticket is selected
-              }
-            },
-            child: Icon(Icons.reply_outlined),
-          ),
-          SizedBox(height: 16),
-          FloatingActionButton(
-            heroTag: 'add',
-            onPressed: () {
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          if (isEditing) {
+            final selectedTicketId = selectedTicketIds.isNotEmpty ? selectedTicketIds.first : null;
+            if (selectedTicketId != null) {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => AddTicketScreen()),
+                MaterialPageRoute(
+                  builder: (context) => ReplyTicketScreen(ticketId: selectedTicketId),
+                ),
               ).then((value) {
-                // Handle any necessary actions after returning from AddTicketScreen
+                // Handle any necessary actions after returning from ReplyTicketScreen
+                if (value == 'done') {
+                  toggleEditing(); // Enable editing mode
+                }
               });
-            },
-            child: Icon(Icons.add),
-          ),
-        ],
-      )
-          : FloatingActionButton(
-        heroTag: 'add',
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddTicketScreen()),
-          ).then((value) {
-            // Handle any necessary actions after returning from AddTicketScreen
-          });
+            } else {
+              // Show a message to the user indicating that no ticket is selected
+            }
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AddTicketScreen()),
+            ).then((value) {
+              // Handle any necessary actions after returning from AddTicketScreen
+            });
+          }
         },
-        child: Icon(Icons.add),
+        child: isEditing ? Icon(Icons.reply_outlined) : Icon(Icons.add),
       ),
-
     );
   }
 }
+
 
 // Placeholder screen to add a ticket
 class AddTicketScreen extends StatefulWidget {
