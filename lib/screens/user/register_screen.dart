@@ -18,6 +18,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   late SettingsCubit settings;
+  final List<String> msgs =[];
   String name = "";
   String email = "";
   String password = "";
@@ -26,17 +27,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool loading = false;
 
   showWarnings() {
-    showDialog(context: context, builder:(context) => CupertinoAlertDialog(
-      title: Text(AppLocalizations.of(context).getTranslate('warning')),
-      actions: [
-        CupertinoDialogAction(
-          onPressed: ()=>Navigator.of(context).pop(),
-          child: Text(AppLocalizations.of(context).getTranslate('close')),
-        ),
-      ],
-      content: Column(
+    showDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(AppLocalizations.of(context).getTranslate('warning')),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () {
+              Navigator.of(context).pop();
+              clearWarnings(); // Call the function to clear warnings
+            },
+            child: Text(AppLocalizations.of(context).getTranslate('close')),
+          ),
+        ],
+        content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: warnings.map((e) => Container(
+          children: warnings
+              .map(
+                (e) => Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               margin: const EdgeInsets.all(4),
@@ -47,10 +55,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Text(
                 AppLocalizations.of(context).getTranslate(e),
                 textAlign: TextAlign.start,
-              ))).toList()
+              ),
+            ),
+          )
+              .toList(),
+        ),
       ),
-    ));
+    );
   }
+
+  void clearWarnings() {
+    setState(() {
+      warnings.clear(); // Clear the warnings list
+    });
+  }
+
 
 
   Future<void> register() async {
@@ -58,11 +77,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       loading = true;
     });
 
-    final List<String> msgs =[];
-
-    if (email.trim().isEmpty) {
-      msgs.add("mail_required");
-    }
 
     if (password.trim().length < 6) {
       msgs.add("passwd_length");
@@ -72,6 +86,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
     ).hasMatch(email);
 
+    if (email.trim().isEmpty) {
+      msgs.add("mail_required");
+    }
+
     if (!emailValid) {
       msgs.add("email_format");
     }
@@ -79,6 +97,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (name.trim().isEmpty) {
       msgs.add("name_required");
     }
+
+    if (password != confirm_password) {
+      msgs.add("passwd_match"); // Add the message for password mismatch
+    }
+
+
 
     if (msgs.isEmpty) {
       final registerResult = await performRegister(email, password, name, confirm_password);
@@ -133,9 +157,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         // Login successful, return the response body
         return responseBody;
       } else {
-        // Login failed, handle the error message
-        final msg = responseBody['msg'] as String;
-        print('Login failed: $msg');
+        msgs.add("email_exists");
       }
     } else {
       // Handle error cases here
@@ -191,6 +213,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Text(AppLocalizations.of(context).getTranslate('conf_passwd')),
               const SizedBox(height: 8),
               TextField(
+                obscureText: true,
                 onChanged: (value) => setState(() {
                   confirm_password = value;
                 }),

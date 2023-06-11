@@ -18,27 +18,31 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   late SettingsCubit settings;
+  final List<String> msgs =[];
   String email = "";
   String password = "";
   List<String> warnings = [];
   bool loading = false;
 
-  void showWarnings() {
+  showWarnings() {
     showDialog(
-        context: context,
-        builder:(context) => CupertinoAlertDialog(
-      title: Text(AppLocalizations.of(context).getTranslate('warning')),
-      actions: [
-        CupertinoDialogAction(
-          onPressed: ()=>Navigator.of(context).pop(),
-          child: Text(AppLocalizations.of(context).getTranslate('close')),
-        ),
-      ],
-      content: Column(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(AppLocalizations.of(context).getTranslate('warning')),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () {
+              Navigator.of(context).pop();
+              clearWarnings(); // Call the function to clear warnings
+            },
+            child: Text(AppLocalizations.of(context).getTranslate('close')),
+          ),
+        ],
+        content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: warnings
               .map(
-                  (e) => Container(
+                (e) => Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               margin: const EdgeInsets.all(4),
@@ -49,20 +53,27 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Text(
                 AppLocalizations.of(context).getTranslate(e),
                 textAlign: TextAlign.start,
-              ))).toList()
+              ),
+            ),
+          )
+              .toList(),
+        ),
       ),
-    ));
+    );
   }
+
+  void clearWarnings() {
+    setState(() {
+      warnings.clear(); // Clear the warnings list
+    });
+  }
+
 
   Future<void> login() async {
     setState(() {
       loading = true;
     });
 
-    final List<String> msgs =[];
-    if(email.trim().isEmpty) {
-      msgs.add("mail_required");
-    }
     if(password.trim().length < 6) {
       msgs.add("passwd_length");
     }
@@ -71,13 +82,15 @@ class _LoginScreenState extends State<LoginScreen> {
     RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
         .hasMatch(email);
 
+    if(email.trim().isEmpty) {
+      msgs.add("mail_required");
+    }
+
     if(!emailValid) {
       msgs.add("email_format");
     }
 
     if(msgs.isEmpty) {
-      // everything is ok
-      // i can login
       final loginResult = await performLogin(email, password);
 
       if (loginResult != null){
@@ -131,8 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return responseBody;
       } else {
         // Login failed, handle the error message
-        final msg = responseBody['msg'] as String;
-        print('Login failed: $msg');
+        msgs.add("invalid_credentials");
       }
     } else {
       // Handle error cases here
